@@ -25,6 +25,29 @@ class Converter {
 
     }
 
+    regValueInfo(preparseValueValue) {
+        if(preparseValueValue[0] === '"') {
+            return {
+                fspKind: "String",
+                value: preparseValueValue.match(/"(.*)"/)[1]
+            };
+        } else if (preparseValueValue.slice(0, 6) === "dword:") {
+            let hex = preparseValueValue.slice(6);
+            return {
+                fspKind: "DWord",
+                value: parseInt(hex, 16)
+            };
+        } else if(preparseValueValue.slice(0, 7) == "hex(3):") {
+            let bytesHex = preparseValueValue.slice(7).split(",");
+            let bytes = bytesHex.map(h => parseInt(h, 16));
+            let b64 = btoa(String.fromCharCode(...bytes));
+            return {
+                fspKind: "binary",
+                value: b64
+            };
+        }
+    }
+
     convert(input) {
         let lines = input.split("\n");
         for(let line of lines) {
@@ -46,11 +69,11 @@ class Converter {
                     valueName = preparseValueName.match(/"(.*)"/)[1];
                 }
 
-                // TODO: non-Strings
+                let valueValueData = this.regValueInfo(preparseValueValue);
 
-                valueType = "REG_SZ";
+                valueType = valueValueData.fspKind;
 
-                valueValue = preparseValueValue.match(/"(.*)"/)[1];
+                valueValue = valueValueData.value;
 
                 this.placeNode(this._currentKey, valueName, valueValue, valueType);
 
@@ -65,7 +88,7 @@ class Converter {
         node.setAttribute("keyName", key);
         node.setAttribute("valueName", valueName);
         node.setAttribute("value", valueValue);
-        node.setAttribute("valueKind", "String");
+        node.setAttribute("valueKind", valueType);
         this._registryBackups.append(node);
     }
 
