@@ -1,16 +1,18 @@
 const INITIAL_XML_STRING = `<?xml version="1.0" encoding="utf-8"?>
 <configuration>
     <configSections>
-        <section name="flashpointSecurePlayer" type="FlashpointSecurePlayer.Shared+FlashpointSecurePlayerSection, FlashpointSecurePlayer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+        <section name="flashpointSecurePlayer" type="FlashpointSecurePlayer.Shared+FlashpointSecurePlayerSection, FlashpointSecurePlayer, Version=2.0.0.0, Culture=neutral, PublicKeyToken=null" />
     </configSections>
     <flashpointSecurePlayer>
-        <modifications>
-            <modification name="INSERTNAMEHERE">
-                <registryBackups binaryType="SCS_32BIT_BINARY">
-
-                </registryBackups>
-            </modification>
-        </modifications>
+        <templates>
+            <template name="INSERT_NAME_HERE">
+                <mode name="WEB_BROWSER" />
+                <modifications>
+                    <registryStates binaryType="SCS_32BIT_BINARY">
+                    </registryStates>
+                </modifications>
+            </template>
+        </templates>
     </flashpointSecurePlayer>
 </configuration>
 `;
@@ -21,7 +23,7 @@ class Converter {
         this._xmldocument = parser.parseFromString(INITIAL_XML_STRING, "text/xml");
         this._xmlserializer = new XMLSerializer();
         this._currentKey = null;
-        this._registryBackups = this._xmldocument.querySelector("registryBackups");
+        this._registryStates = this._xmldocument.querySelector("registryStates");
 
     }
 
@@ -83,13 +85,13 @@ class Converter {
     }
 
     placeNode(key, valueName, valueValue, valueType) {
-        let node = this._xmldocument.createElement("registryBackup");
+        let node = this._xmldocument.createElement("registryState");
         node.setAttribute("type", "VALUE");
         node.setAttribute("keyName", key);
         node.setAttribute("valueName", valueName);
         node.setAttribute("value", valueValue);
         node.setAttribute("valueKind", valueType);
-        this._registryBackups.append(node);
+        this._registryStates.append(node);
     }
 
 }
