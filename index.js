@@ -23,6 +23,7 @@ class Converter {
         this._xmldocument = parser.parseFromString(INITIAL_XML_STRING, "text/xml");
         this._xmlserializer = new XMLSerializer();
         this._currentKey = null;
+        this._currentKeyHasValues = false;
         this._registryStates = this._xmldocument.querySelector("registryStates");
 
     }
@@ -50,18 +51,31 @@ class Converter {
         }
     }
 
+    finalizeCurrentKey() {
+        if(this._currentKey && !this._currentKeyHasValues) {
+            let node = this._xmldocument.createElement("registryState");
+            node.setAttribute("type", "KEY");
+            node.setAttribute("keyName", this._currentKey);
+            this._registryStates.append(node);
+        }
+    }
+
     convert(input) {
         let lines = input.split("\n");
         for(let line of lines) {
             if(line.startsWith("[")) {
+                this.finalizeCurrentKey();
                 let match = line.match(/\[(.*)\]/);
                 let key = match[1];
                 this._currentKey = key;
+                this._currentKeyHasValues = false;
             } else {
+
                 let [preparseValueName, preparseValueValue] = line.split("=");
                 if(typeof preparseValueValue === "undefined") {
                     continue;
                 }
+                this._currentKeyHasValues = true;
                 let valueName;
                 let valueValue;
                 let valueType;
@@ -81,6 +95,7 @@ class Converter {
 
             }
         }
+        this.finalizeCurrentKey();
         return this._xmlserializer.serializeToString(this._xmldocument);
     }
 
